@@ -1,0 +1,4 @@
+Public DNS	ec2-54-213-253-193.us-west-2.compute.amazonaws.com
+User name	Administrator
+Password	
+.Tu5?%yDDN

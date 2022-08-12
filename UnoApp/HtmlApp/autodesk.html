@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<!--
+ *  Copyright (c) 2017 Perinno Labs. All Rights Reserved.
+ *
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="UNO Remote Collaboration Demo App">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta id="theme-color" name="theme-color" content="#ffffff">
+    <link rel="icon" href="images/perinno_favicon_32x32.ico" sizes="32x32">
+
+    <!--J-Query-->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>    
+
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+
+    <!--Materialize-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+
+    <!--Own scripts and CSS-->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+	
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta charset="utf-8">
+
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.min.css" type="text/css">
+	
+	<!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
+
+
+    <!-- Developer CSS -->
+    <style>
+
+        #AutoDeskViewerDiv {			
+			width: 100%;
+			position: relative;
+            background-color: #F0F8FF;
+            margin-top:2%;
+        }
+
+    </style>
+
+    <title>Perinno's Uno App</title>
+</head>
+<body>
+    <!--<header>
+        <nav>
+            <div class="nav-wrapper">
+                <a href="https://perinno.com" class="brand-logo center valign-wrapper">
+                    <img id="perinno_logo" style="vertical-align:middle" src="images/perinno_logo_white1.png" />
+                </a>
+            </div>
+        </nav>
+    </header>-->
+    <main>
+        <div class="container offset-s3">
+            <!--<a name="action" onclick="AutoDeskViewerClose()" class="waves-effect waves-green btn red">Close</a>-->
+                <div id="AutoDeskViewerDiv" onmousedown="omMouseClick()"></div>
+        </div>
+    </main>
+
+	
+	    <!-- Developer JS -->
+    <script>
+        
+        var viewer;
+		var _selectedId;
+		var instanceTree;
+		var rootId;
+		var explodeCommandSend = 0;   
+        
+        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6YmF0YWtidWNrZXQ4L1R1cmJpbmUuRkJY';
+        getTokenFromServer();
+        function onTokenReceivedSuccess(token)
+        {
+            var options = {
+                env: 'AutodeskProduction',
+                accessToken: token
+            };
+            Autodesk.Viewing.Initializer(options, function onInitialized() {
+                Autodesk.Viewing.Document.load(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+            });
+        }
+      
+        /**
+        * Autodesk.Viewing.Document.load() success callback.
+        * Proceeds with model initialization.
+        */
+        function onDocumentLoadSuccess(doc) {
+
+            // A document contains references to 3D and 2D viewables.
+            var viewables = Autodesk.Viewing.Document.getSubItemsWithProperties(doc.getRootItem(), {'type':'geometry'}, true);
+            if (viewables.length === 0) {
+                console.error('Document contains no viewables.');
+                return;
+            }
+
+            // Choose any of the avialble viewables
+            var initialViewable = viewables[0];
+            var svfUrl = doc.getViewablePath(initialViewable);
+            var modelOptions = {
+                sharedPropertyDbPath: doc.getPropertyDbPath()
+            };
+
+            var viewerDiv = document.getElementById('AutoDeskViewerDiv');
+            viewer = new Autodesk.Viewing.Private.GuiViewer3D(viewerDiv);
+            viewer.start(svfUrl, modelOptions, onLoadModelSuccess, onLoadModelError);
+			
+			viewer.addEventListener(
+			Autodesk.Viewing.SELECTION_CHANGED_EVENT,
+			function (event) {
+			    console.log("Selection Event called");
+			    instanceTree = viewer.model.getData().instanceTree;
+			    console.log('instanceTree' + instanceTree);
+				var dbId = event.dbIdArray[0];
+				if (typeof dbId !== 'undefined') {
+				    _selectedId = dbId;
+				    console.log("The selected object id is and name" + _selectedId + instanceTree.getNodeName(_selectedId));
+				}
+				else {
+						_selectedId = null;
+				}
+				message_broadcast("ModelSelect:" + instanceTree.getNodeName(_selectedId));
+				console.log("Message broadcasted to main.js " + "ModelSelect:" + instanceTree.getNodeName(_selectedId));
+			});
+
+
+			viewer.addEventListener(
+            Autodesk.Viewing.EXPLODE_CHANGE_EVENT,
+            function (event) {
+                if (explodeCommandSend === 0)
+                {
+                    console.log('Explode Command send');
+                    message_broadcast("ModelSelect:ModelExplode");
+                    explodeCommandSend = 1;
+                }
+                });
+        }
+
+        /**
+         * Autodesk.Viewing.Document.load() failuire callback.
+         */
+        function onDocumentLoadFailure(viewerErrorCode) {
+            console.error('onDocumentLoadFailure() - errorCode:' + viewerErrorCode);
+        }
+
+        /**
+         * viewer.loadModel() success callback.
+         * Invoked after the model's SVF has been initially loaded.
+         * It may trigger before any geometry has been downloaded and displayed on-screen.
+         */
+        function onLoadModelSuccess(model) {
+            console.log('onLoadModelSuccess()!');
+            console.log('Validate model loaded: ' + (viewer.model === model));
+            console.log(model);
+        }
+
+        /**
+         * viewer.loadModel() failure callback.
+         * Invoked when there's an error fetching the SVF file.
+         */
+        function onLoadModelError(viewerErrorCode) {
+            console.error('onLoadModelError() - errorCode:' + viewerErrorCode);
+        }
+	
+		function omMouseClick() {
+			setTimeout(DeactivateButton, 500);
+		}
+		function DeactivateButton()
+		{
+		    if (document.getElementById('toolbar-explodeTool').classList.contains("inactive") && (explodeCommandSend === 1)) {
+		        console.log('Explode button reset');
+		        explodeCommandSend = 0;
+		    }
+		    else return; //not do anything, can be edited later
+		}
+
+		function message_broadcast(message) {
+		    localStorage.setItem('message', JSON.stringify(message));
+		    localStorage.removeItem('message');
+		}
+
+		function getTokenFromServer() {
+		    localStorage.setItem('getToken', JSON.stringify("dummy"));
+		    localStorage.removeItem('getToken');
+		    console.log("get token from server sent to main.js");
+		}
+
+		winHeight1 = $(window).innerHeight()*(2/3);
+		$('#AutoDeskViewerDiv').css({ "height": winHeight1 + "px" })
+
+		$(window).on('storage', token_receive);
+		function token_receive(ev) {
+		    if (ev.originalEvent.key == 'receivedToken')
+		    {
+		        var message = JSON.parse(ev.originalEvent.newValue);
+		        if (!message) return;
+		        onTokenReceivedSuccess(JSON.parse(ev.originalEvent.newValue));
+		        console.log("Received Token " + JSON.parse(ev.originalEvent.newValue));
+		    }
+		    else
+		    {
+		        console.log("No matching key found autodesk");
+		        return;
+		    }
+		}
+    </script>
+	
+</body>
+</html>

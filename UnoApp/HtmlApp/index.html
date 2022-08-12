@@ -1,0 +1,480 @@
+﻿<!DOCTYPE html>
+<!--
+ *  Copyright (c) 2017 Perinno Labs. All Rights Reserved.
+ *
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="UNO Remote Collaboration Demo App">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta id="theme-color" name="theme-color" content="#ffffff">
+    <link rel="icon" href="images/perinno_favicon_32x32.ico" sizes="32x32">
+
+    <!--J-Query-->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+
+    <!--Materialize-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+
+    <!--Google Firebase-->
+    <script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
+
+    <script>
+        // Initialize Firebase
+
+        var config = {
+            apiKey: "AIzaSyBhNuy7ht3ynyffV8sc_9NVUBx7yezdE-k",
+            authDomain: "perinno-c9324.firebaseapp.com",
+            databaseURL: "https://perinno-c9324.firebaseio.com",
+            projectId: "perinno-c9324",
+            storageBucket: "perinno-c9324.appspot.com",
+            messagingSenderId: "644302137526"
+        };
+        firebase.initializeApp(config);
+
+    </script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/2.4.1/firebaseui.css" />
+    <script type="text/javascript">
+        // FirebaseUI config.
+        var country = 'JP';
+        $.get("https://ipinfo.io", function (response) {
+            console.log(response.city, response.country);
+            if (response.country) {
+                country = response.country;
+            }
+            uiConfig.signInOptions[2].defaultCountry = country;
+            console.log(uiConfig.signInOptions);
+        }, "jsonp");
+
+        var uiConfig = {
+            callbacks: {
+                signInSuccess: function (currentUser, credential, redirectUrl) {
+                    //console.log(JSON.stringify(currentUser));
+
+                    //console.log(JSON.stringify(credential));
+                    // Do something.
+                    // Return type determines whether we continue the redirect automatically
+                    // or whether we leave that to developer to handle.
+                    return true;
+                },
+                uiShown: function () {
+                    // The widget is rendered.
+                    // Hide the loader.
+                    //document.getElementById('loader').style.display = 'none';
+                }
+            },
+            credentialHelper: firebaseui.auth.CredentialHelper.ACCOUNT_CHOOSER_COM,
+            // Query parameter name for mode.
+            queryParameterForWidgetMode: 'mode',
+            // Query parameter name for sign in success url.
+            queryParameterForSignInSuccessUrl: 'signInSuccessUrl',
+            // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
+            //signInFlow: 'popup',
+            signInSuccessUrl: 'main.html',
+            signInOptions: [
+                // Leave the lines as is for the providers you want to offer your users.
+                {
+                    provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    scopes: ['https://www.googleapis.com/auth/plus.login']
+                },
+                firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                {
+                    provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+                    defaultCountry: country,
+                    // Invisible reCAPTCHA with image challenge and bottom left badge.
+                    recaptchaParameters: {
+                        type: 'image',
+                        size: 'invisible',
+                        badge: 'bottomleft'
+                    }
+                },
+                {
+                    provider: firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+                    scopes: [
+                        'public_profile',
+                        'email'
+                    ]
+                },
+                firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+                firebase.auth.GithubAuthProvider.PROVIDER_ID
+            ],
+            // Terms of service url.
+            tosUrl: 'https://perinno.com/index.php/terms-of-service/'
+        };
+
+        // Initialize the FirebaseUI Widget using Firebase.
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+        // The start method will wait until the DOM is loaded.
+        ui.start('#firebaseui-auth-container', uiConfig);
+    </script>
+
+    <!--Materialize-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+
+    <!--Google Analytics-->
+    <script>
+        (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-90546901-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.min.js"></script>
+
+
+    <!--Own scripts and CSS-->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <title>Perinno's Uno App</title>
+</head>
+<body>
+    <div id="modalSystemRequirements" class="modal">
+        <div class="modal-content">
+            <div>
+                <ul class="collection with-header" id="systeReqchecklist">
+
+                    <li class="collection-header"><h6><font color="white">System Requirements Test</font></h6></li>
+                    <li class="collection-item avatar" id="getusermedia">
+                    </li>
+                    <li class="collection-item avatar" id="browser">
+                    </li>
+                    <li class="collection-item avatar" id="mobiledevice">
+                    </li>
+                    <li class="collection-item avatar" id="microphone">
+                    </li>
+                    <li class="collection-item avatar" id="webcam">
+                    </li>
+                    <li class="collection-item avatar" id="speaker">
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer" style="background-color:coral" id="footerInfo">
+
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+        </div>
+    </div>
+    <header>
+        <nav>
+            <div class="nav-wrapper">
+                <a href="https://perinno.com" class="brand-logo center valign-wrapper">
+                    <img id="perinno_logo" style="vertical-align:middle" src="images/white_logo_new.png" />
+                </a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div>
+            <div>
+                <h5 class="center-align">Log-in to Perinno</h5>
+                <div id="firebaseui-auth-container"></div>
+                <p class="center-align">
+                    <font color="blue"> Sign-in provided by Google Firebase. Perinno doesn't have access to your credentials and will not post on your behalf. </font>
+                </p>
+                <p class="center-align">
+                    By signing in, you agree with our <a href="https://perinno.com/index.php/terms-of-service/">Terms of Service</a> & <a href="https://perinno.com/index.php/privacy-policy/">Privacy Policy</a>.
+                </p>
+            </div>
+        </div>
+    </main>
+    <footer class="page-footer">
+        <div class="footer-copyright">
+            <div class="container">
+                © 2017 Perpetual Innovation Labs. All Rights Reserved.
+                <a class="grey-text text-lighten-4 right" href="https://perinno.com">www.perinno.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        var browserSupported = false;
+        var MediaDevices = [];
+        var isHTTPs = location.protocol === 'https:';
+        var canEnumerate = false;
+        var hasMicrophone = false;
+        var hasSpeakers = false;
+        var hasWebcam = false;
+        var isComputer = false;
+        var isMicrophoneAlreadyCaptured = false;
+        var isWebcamAlreadyCaptured = false;
+        var isGetUserMediaSupported = false;
+
+
+        //head.ready(document, function () {
+        //    if (!head.browser.chrome || (head.browser.chrome && head.browser.version < 55)) {
+        //        //alert("This browser may result in limited functionality. Please use Chrome Version 55 or above!");
+        //        console.log('Detected Browser Ver: ' + head.browser.version);
+        //        browserSupported = false;
+        //    }
+
+        //    if (head.mobile) {
+        //        //alert("This webapp is best viewed on a desktop browser. Functionality may be limited on mobile browsers!");
+        //        //browserSupported = false;
+        //        isMobileDevice = true;
+        //    }
+        //});
+
+        $(document).ready(function () {
+            console.log("ready!");
+            if (head.browser.chrome && head.browser.version >= 55) {
+                //alert("This browser may result in limited functionality. Please use Chrome Version 55 or above!");
+                console.log('Detected Browser Ver: ' + head.browser.version);
+                browserSupported = true;
+            }
+
+            if (!head.mobile) {
+                //alert("This webapp is best viewed on a desktop browser. Functionality may be limited on mobile browsers!");
+                //browserSupported = false;
+                console.log("Computer or Laptop");
+                isComputer = true;
+            }
+
+            if (navigator.getUserMedia) {
+                isGetUserMediaSupported = true;
+            } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                isGetUserMediaSupported = true;
+            }
+
+            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                // Firefox 38+ seems having support of enumerateDevicesx
+                navigator.enumerateDevices = function (callback) {
+                    navigator.mediaDevices.enumerateDevices().then(callback);
+                };
+            }
+
+            //var MediaDevices = [];
+            //var isHTTPs = location.protocol === 'https:';
+            //var canEnumerate = false;
+
+            if (typeof MediaStreamTrack !== 'undefined' && 'getSources' in MediaStreamTrack) {
+                canEnumerate = true;
+            } else if (navigator.mediaDevices && !!navigator.mediaDevices.enumerateDevices) {
+                canEnumerate = true;
+            }
+
+            //var hasMicrophone = false;
+            //var hasSpeakers = false;
+            //var hasWebcam = false;
+
+            //var isMicrophoneAlreadyCaptured = false;
+            //var isWebcamAlreadyCaptured = false;
+
+            function checkDeviceSupport(callback) {
+                if (!canEnumerate) {
+                    return;
+                }
+
+                if (!navigator.enumerateDevices && window.MediaStreamTrack && window.MediaStreamTrack.getSources) {
+                    navigator.enumerateDevices = window.MediaStreamTrack.getSources.bind(window.MediaStreamTrack);
+                }
+
+                if (!navigator.enumerateDevices && navigator.enumerateDevices) {
+                    navigator.enumerateDevices = navigator.enumerateDevices.bind(navigator);
+                }
+
+                if (!navigator.enumerateDevices) {
+                    if (callback) {
+                        callback();
+                    }
+                    return;
+                }
+
+                MediaDevices = [];
+                navigator.enumerateDevices(function (devices) {
+                    devices.forEach(function (_device) {
+                        var device = {};
+                        for (var d in _device) {
+                            device[d] = _device[d];
+                        }
+
+                        if (device.kind === 'audio') {
+                            device.kind = 'audioinput';
+                        }
+
+                        if (device.kind === 'video') {
+                            device.kind = 'videoinput';
+                        }
+
+                        var skip;
+                        MediaDevices.forEach(function (d) {
+                            if (d.id === device.id && d.kind === device.kind) {
+                                skip = true;
+                            }
+                        });
+
+                        if (skip) {
+                            return;
+                        }
+
+                        if (!device.deviceId) {
+                            device.deviceId = device.id;
+                        }
+
+                        if (!device.id) {
+                            device.id = device.deviceId;
+                        }
+
+                        if (!device.label) {
+                            device.label = 'Please invoke getUserMedia once.';
+                            if (!isHTTPs) {
+                                device.label = 'HTTPs is required to get label of this ' + device.kind + ' device.';
+                            }
+                        } else {
+                            if (device.kind === 'videoinput' && !isWebcamAlreadyCaptured) {
+                                isWebcamAlreadyCaptured = true;
+                            }
+
+                            if (device.kind === 'audioinput' && !isMicrophoneAlreadyCaptured) {
+                                isMicrophoneAlreadyCaptured = true;
+                            }
+                        }
+
+                        if (device.kind === 'audioinput') {
+                            hasMicrophone = true;
+                            console.log("microphone found");
+                        }
+
+                        if (device.kind === 'audiooutput') {
+                            hasSpeakers = true;
+                            console.log("speaker found");
+                        }
+
+                        if (device.kind === 'videoinput') {
+                            hasWebcam = true;
+                            console.log("webcam found");
+                        }
+
+                        // there is no 'videoouput' in the spec.
+
+                        MediaDevices.push(device);
+                    });
+
+                    if (callback) {
+                        callback();
+                    }
+                });
+            }
+
+            // check for microphone/camera support!
+            checkDeviceSupport(function () {
+                if (!browserSupported || !hasWebcam || !hasMicrophone || !hasSpeakers || !isComputer || !isGetUserMediaSupported) {
+                    if (isGetUserMediaSupported === false) {
+                        $("#getusermedia").append('<i class="material-icons circle red">error</i>' +
+                            '<span class="title">WebRTC Test</span>' +
+                            '<p>' +
+                            'The app will not work as the core funcitonality of WebRTC is unavailable.<br />' +
+                            '</p>');
+                    }
+                    else {
+                        $("#getusermedia").append('<i class="material-icons circle green">check</i>' +
+                            '<span class="title">WebRTC Test</span>' +
+                            '<p>' +
+                            'WebRTC core functionality is available.<br />' +
+                            '</p>');
+                    }
+                    if (isComputer == false) {
+                        $("#mobiledevice").append('<i class="material-icons circle red">warning</i>' +
+                            '<span class="title">Device Test</span>' +
+                            '<p>' +
+                            'This is a mobile device.<br />' +
+                            'The app is best suited to work on a computer or a laptop.' +
+                            '</p>');
+                    }
+                    else {
+                        $("#mobiledevice").append('<i class="material-icons circle green">check</i>' +
+                            '<span class="title">Device Test</span>' +
+                            '<p>' +
+                            'Compatible Device.<br />' +
+                            '</p>');
+                    }
+
+                    if (browserSupported === false) {
+                        $("#browser").append('<i class="material-icons circle red">warning</i>' +
+                            '<span class="title">Browser Test</span>' +
+                            '<p>' +
+                            'Incompatible Browser. This may result in limited functionality.<br />' +
+                            'Google Chrome Version 55 and above is recommended.' +
+                            '</p>');
+                    }
+                    else {
+                        $("#browser").append('<i class="material-icons circle green">check</i>' +
+                            '<span class="title">Browser Test</span>' +
+                            '<p>' +
+                            'Compatible Browser.<br />' +
+                            '</p>');
+                    }
+                    if (hasMicrophone === false) {
+                        $("#microphone").append('<i class="material-icons circle red">warning</i>' +
+                            '<span class="title">Microphone Test</span>' +
+                            '<p>' +
+                            'Microphone not found.<br />' +
+                            'Remote user cannot hear you.' +
+                            '</p>');
+                    }
+                    else {
+                        $("#microphone").append('<i class="material-icons circle green">check</i>' +
+                            '<span class="title">Microphone Test</span>' +
+                            '<p>' +
+                            'Microphone found.<br />' +
+                            'Remote user can hear you' +
+                            '</p>');
+                    }
+
+                    if (hasWebcam === false) {
+                        $("#webcam").append('<i class="material-icons circle red">warning</i>' +
+                            '<span class="title">Webcam Test</span>' +
+                            '<p>' +
+                            'No webcam found.<br />' +
+                            'Your video cannot be seen by remote user.' +
+                            '</p>');
+                    }
+                    else {
+                        $("#webcam").append('<i class="material-icons circle green">check</i>' +
+                            '<span class="title">Webcam Test</span>' +
+                            '<p>' +
+                            'Webcam found.<br />' +
+                            'Your video can be seen by remote user.' +
+                            '</p>');
+                    }
+
+                    if (hasSpeakers === false) {
+                        $("#speaker").append('<i class="material-icons circle red">warning</i>' +
+                            '<span class="title">Speaker Test</span>' +
+                            '<p>' +
+                            'Speaker not found.<br />' +
+                            'Remote user voice cannot be heard.' +
+                            '</p>');
+                    }
+                    else {
+                        $("#speaker").append('<i class="material-icons circle green">check</i>' +
+                            '<span class="title">Speaker Test</span>' +
+                            '<p>' +
+                            'Speaker found.<br />' +
+                            'Remote user voice can be heard.' +
+                            '</p>');
+                    }
+
+                    $("#footerInfo").append(' <h7><font color="white"> Due to incompatible system requirements, ' +
+                        'the app may have limited functionality and behave improperly.</font> </h7>');
+                    $('#modalSystemRequirements').modal({
+                        dismissible: true,
+                        opacity: 0.5
+                    }).modal('open');
+                }
+            });
+        })
+    </script>
+</body>
+</html>

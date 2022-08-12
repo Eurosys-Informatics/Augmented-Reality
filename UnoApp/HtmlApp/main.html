@@ -1,0 +1,500 @@
+﻿<!DOCTYPE html>
+<!--
+ *  Copyright (c) 2017 Perinno Labs. All Rights Reserved.
+ *
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="UNO Remote Collaboration Demo App">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta id="theme-color" name="theme-color" content="#ffffff">
+    <link rel="icon" href="images/perinno_favicon_32x32.ico" sizes="32x32">
+
+    <!--SocketIO-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+    <!--J-Query-->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="js/FileSaver.min.js"></script>
+
+
+    <!--Google Firebase-->
+    <script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
+
+
+    <script src="https://cdn.WebRTC-Experiment.com/getScreenId.js"></script>
+
+    <script>
+        // Initialize Firebase
+
+        var config = {
+            apiKey: "AIzaSyBhNuy7ht3ynyffV8sc_9NVUBx7yezdE-k",
+            authDomain: "perinno-c9324.firebaseapp.com",
+            databaseURL: "https://perinno-c9324.firebaseio.com",
+            projectId: "perinno-c9324",
+            storageBucket: "perinno-c9324.appspot.com",
+            messagingSenderId: "644302137526"
+        };
+        firebase.initializeApp(config);
+    </script>
+
+    <!--Dropbox-->
+    <script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="zx406sg9dudvt5y"></script>
+    <script src="js/download.min.js"></script>
+
+    <!--Materialize-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+
+    <!--Google Analytics-->
+    <script>
+        (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date(); a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-90546901-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+    <!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
+
+
+    <!--Own scripts and CSS-->
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <!--<script src="js/main.js"></script>-->
+    <script src="js/main.min.js"></script>
+    <script src="js/main_specific.min.js"></script>
+    <script src="js/chat.min.js"></script>
+
+    <!--Tour-->
+    <script src='js/jquery.tour.js'></script>
+    <link rel="stylesheet" type="text/css" href="css/tour.css">
+    <script>
+        if ($(window).width() < 780) {
+            console.log("Screenwidth :" + $(window).width());
+            $('.tooltipped').tooltip('remove');
+        }
+    </script>
+
+    <script>
+        $(function () {
+            $("#localVideo").draggable();
+            $("#screenSharingVideo").draggable();
+        });
+    </script>
+
+    <script>
+        // Config tour steps
+        var tourSteps = [
+
+            {
+                "msg": "Click here and select manipulate 3D button to manipulate turbine engine",
+                "selector": ".step1",
+                "position": "right",
+                "nextSelector": "#collaboration"
+                //"btnMsg": "Finish &raquo"
+            }
+
+        ];
+
+            // fire off the tour when ready
+
+    </script>
+
+
+    <!--<script>
+    $( function() {
+        $("#localVideo").resizable();
+    } );
+      </script>-->
+
+    <script>
+        $(function () {
+            $("#peerlist").selectable();
+        });
+    </script>
+
+    <!--autodesk -->
+    <script>
+        $(function () {
+            $(".in_iframe_modal").on("click", function (evt) {
+                evt.preventDefault();
+                btnDom = $(this);
+                url = btnDom.attr("href") || btnDom.data("modal-frame-src");
+                //lets get the modal title
+                //modalTitle = btnDom.data('modal-title') || btnDom.attr("title");
+                modal = $("#iframe_modal");
+                // modal.find("#modal-title").text(modalTitle);
+                winHeight = $(window).innerHeight() - 0;
+                modal.css({
+                    "height": winHeight + "px",
+                    "max-height": winHeight + "px",
+                });
+                $('#iframe_modal').modal({
+                    dismissible: false,
+                    opacity: 1,
+                    //closeIcon: true
+                }).modal('open');
+                frame = $("#iframe_modal iframe");
+                frame.css("height", winHeight);
+                //change iframe modal src
+                frame.attr("src", url);
+            });
+        });
+
+        function startDemo() {
+            $("#demobutton").addClass('disabled');
+            $("#manipulate3d").removeClass('disabled');
+            if (sendGenericDC.readyState === 'open') {
+                sendGenericDC.send("DemoRequest");
+            }
+            $.tour(tourSteps);
+        }
+
+    </script>
+
+
+    <title>Perinno's Uno App</title>
+</head>
+<body>
+    <!-- Modal Structure -->
+    <div id="modal1" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <nav>
+                    <div class="nav-wrapper">
+                        <a href="https://perinno.com" class="brand-logo"><img id="perinno_logo" style="vertical-align:middle; margin-left:10%" src="images/white_logo_new.png" /></a>
+                        <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+                        <ul class="right hide-on-med-and-down">
+                            <li><a href="#!"><i class="material-icons">live_help</i></a></li>
+                            <!--<li><a href="#!"><i class="material-icons">view_module</i></a></li>-->
+                            <li class="collection-item avatar valign-wrapper">
+                                <a name="action" onclick="UserLogout()"><img height="32" width="32" style="vertical-align:middle" id="personalImage1" alt="" class="circle responsive-img"></a>
+                            </li>
+                        </ul>
+                        <ul class="side-nav" id="mobile-demo">
+                            <li><a href="#!">Help</a></li>
+                            <li><a name="action" onclick="UserLogout()">Log-out</a></li>
+                            <li class="collection-item avatar">
+                                <a href="#!"><img id="personalImage" alt="" style="vertical-align:middle" class="circle responsive-img"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div>
+                <h7 class="center-align">Enter the collaboration room of HoloLens user or create a new one</h7>
+            </div>
+            <div class="row">
+                <div class="input-field col s10 m8 l6">
+                    <input value="hololens123" id="first_name1" type="text" class="validate">
+                    <label class="active" for="first_name1">Existing collaboration room</label>
+                    <button class="btn waves-effect waves-light" type="submit" name="action" onclick="joinOrCreateRoom()">
+                        Join
+                        <i class="material-icons right">send</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal2" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <nav>
+                    <div class="nav-wrapper">
+                        <a href="https://perinno.com" class="brand-logo"><img id="perinno_logo" style="vertical-align:middle; margin-left:10%" src="images/white_logo_new.png" /></a>
+                        <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+                        <ul class="right hide-on-med-and-down">
+                            <!--<li><a href="#!"><i class="material-icons">live_help</i></a></li>-->
+                            <li>
+                                <a class="waves-effect waves-light btn no-uppercase" id="room_id">
+                                </a>
+                            </li>
+                            <li><a name="action" onclick="changeroom()"><i class="material-icons">loop</i></a></li>
+                            <li class="collection-item avatar valign-wrapper">
+                                <a name="action" onclick="UserLogout()">
+                                    <img height="32" width="32" style="vertical-align:middle" id="personalImage2" alt="" class="circle responsive-img">
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="side-nav" id="mobile-demo">
+                            <li><a href="#!">Help</a></li>
+                            <li><a name="action" onclick="UserLogout()">Log-out</a></li>
+                            <li class="collection-item avatar">
+                                <a href="#!"><img id="personalImage" alt="" style="vertical-align:middle" class="circle responsive-img"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div>
+                <h7 class="center-align">Following people are currently in this collaboration room</h7>
+                <hr />
+                <h7 class="center-align" id="text_pivot">Select one person to start collaboration session</h7>
+                <ul class="collection" id="peerlist"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal3" class="modal">
+        <div class="modal-content">
+            <div style="margin-bottom:10%">
+                <div id="fromPeerList" style="vertical-align:middle; text-align:center">
+                </div>
+                <div style="vertical-align:middle; text-align:center">
+                    <h5 class="center-align">
+                        Is Calling...
+                    </h5>
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div>
+                <div style="vertical-align:middle; text-align:center; float:left;margin-left:25%">
+                    <a class="btn-floating btn-large waves-effect waves-light green" name="action" onclick="AcceptCall()">
+                        <i class="material-icons">done</i>
+                    </a>
+                </div>
+                <div style="vertical-align:middle; text-align:center;float:right;margin-right:25%">
+                    <a class="btn-floating btn-large waves-effect waves-light red" name="action" onclick="RejectCall()">
+                        <i class="material-icons">cancel</i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal4" class="modal" style="background-color:lemonchiffon">
+        <div class="modal-content">
+            <div id="dialogueBox" style="vertical-align:middle; text-align:center; margin-bottom:10%;margin-top:10%">
+                <!--<h5 class="center-align">
+                    Is Calling...
+                </h5>-->
+            </div>
+        </div>
+        <div class="modal-footer" style="background-color:coral">
+            <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+        </div>
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="modal5" class="modal" style="width: 30% !important;position:fixed;left:auto;">
+        <div class="modal-content">
+            <div id="userInfoBox">
+                <!--<h5 class="center-align">
+                    Is Calling...
+                </h5>-->
+            </div>
+        </div>
+        <div class="modal-footer" style="background-color:coral">
+            <a name="action" onclick="logout()" class="waves-effect waves-green btn-flat ">Sign Out</a>
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+        </div>
+    </div>
+
+    <!-- Modal for autodesk test********************************-->
+    <div class="modal modal-fixed-footer" id='iframe_modal' style="width: 80%; margin-top:-5% !important;background:#ECEFF1;">
+        <div class="modal-content">
+            <iframe style='width:100%; height:75%;border:none;'></iframe>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect waves-green btn red" name="action" onclick="blankPage()">Close</a>
+        </div>
+    </div>
+
+    <div id="modal_server_disconnect" class="modal">
+        <div class="modal-content">
+            <div id="DisconnectInfo">
+                <h5 class="center-align">
+                    The server connection has timed-out!
+                </h5>
+            </div>
+        </div>
+        <div class="modal-footer" style="background-color:coral">
+            <a name="action" onclick="reconnect()" class="waves-effect waves-green btn-flat ">Reconnect</a>
+            <a name="action" onclick="logout()" class="waves-effect waves-green btn-flat ">Sign Out</a>
+        </div>
+    </div>
+
+    <header>
+        <!--Navigation bar-->
+        <nav>
+            <div class="nav-wrapper">
+                <a href="https://perinno.com" class="brand-logo"><img id="perinno_logo" style="vertical-align:middle; margin-left:10%" src="images/white_logo_new.png" /></a>
+                <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a href="#!"><i class="material-icons">live_help</i></a></li>
+                    <li><a href="#!"><i class="material-icons">view_module</i></a></li>
+                    <li class="collection-item avatar valign-wrapper">
+                        <a name="action" onclick="UserLogout()">
+                            <img height="32" width="32" style="vertical-align:middle" id="personalImage0" alt="" class="circle responsive-img">
+                        </a>
+                    </li>
+                </ul>
+                <!--Dropdown Structure
+                <ul id='dropdown1' class='dropdown-content'>
+                    <li><a href="#!">Logout</a></li>
+                </ul>-->
+                <ul class="side-nav" id="mobile-demo">
+                    <li><a href="#!">Help</a></li>
+                    <li><a name="action" onclick="UserLogout()">Log-out</a></li>
+                    <li class="collection-item avatar">
+                        <a href="#!"><img id="personalImage" alt="" style="vertical-align:middle" class="circle responsive-img"></a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div id="pbardiv" class="row container" style="display:none">
+            <div id="pbartext">
+            </div>
+            <div class="progress">
+                <div id="pbarspan" class="determinate" style="width:0%"></div>
+            </div>
+        </div>
+        <div class="container videoContainer" id="videoContainerDiv">
+            <video class="responsive-video remoteVideoFrame" controls id="remoteVideo" autoplay onplay="resize_canvas(this)"></video>
+            <audio id="remoteAudio" autoplay></audio>
+            <canvas class="canvas" id="paint"></canvas>
+            <video class="responsive-video ui-widget-content localVideoFrame" muted id="localVideo" autoplay></video>
+            <video class="responsive-video ui-widget-content screenSharingVideoFrame" style="display:none" muted id="screenSharingVideo" autoplay></video>
+        </div>
+
+        <div class="row">
+            <div class="col s12 m3 l3 offset-m9 offset-l9" id="chatParent">
+                <!--<div class="chatbox" id="chatParent">-->
+                <!--<ul class="collection with-header with-footer" id="chatWindow">
+                </ul>-->
+            </div>
+        </div>
+
+    </main>
+    <!--Footer-->
+    <footer class="page-footer">
+        <div class="container" style="max-height:40px;height:100%;">
+            <div class="row">
+                <div class="col center-align" style="width: 5%">
+                </div>
+                <div class="col center-align" style="width: 19%">
+                    <div class="fixed-action-btn" style="position: relative; margin-left: auto; margin-right: auto; float: none !important">
+                        <a class="btn-floating red tooltipped" data-position="left" data-delay="50" data-tooltip="Call">
+                            <i class="large material-icons">contact_phone</i>
+                        </a>
+                        <ul>
+                            <li>
+                                <a class="btn-floating blue tooltipped" data-position="left" id="videoButton" data-delay="50" data-tooltip="Disable Video" name="action" onclick="disableVideo()">
+                                    <i class="material-icons videoIcon">videocam</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating blue tooltipped" data-position="left" id="audioButton" data-delay="50" data-tooltip="Mute" name="action" onclick="disableAudio()">
+                                    <i class="material-icons audioIcon">mic</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating red tooltipped" data-position="left" data-delay="50" data-tooltip="Call Hangup" name="action" onclick="hangup()">
+                                    <i class="material-icons">call_end</i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col center-align" style="width: 19%">
+                    <div class="fixed-action-btn" style="position: relative">
+                        <a class="btn-floating yellow darken-1 step1">
+                            <i class="large material-icons tooltipped" id="collaboration" data-position="left" data-delay="50" data-tooltip="3D Collaboration">3d_rotation</i>
+                        </a>
+                        <ul>
+                            <li>
+                                <a class="btn-floating blue tooltipped" data-position="left" data-delay="50" data-tooltip="Send Local 3D file" onclick="Send3DModelFile()">
+                                    <i class="material-icons">3d_rotation</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating red tooltipped" data-position="left" data-delay="50" data-tooltip="Send Dropbox 3D file " onclick="SelectModelFromStore()">
+                                    <i class="material-icons">store</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating green in_iframe_modal disabled" id="manipulate3d" href="autodesk.min.html">
+                                    <i class="large material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="Manipulate 3D Model">transform</i>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+                <div class="col center-align" style="width: 19%">
+                    <div class="fixed-action-btn" style="position: relative">
+                        <a class="waves-effect waves-light btn green tooltipped" id="demobutton" name="action" data-position="top" data-delay="50" data-tooltip="Start demo session with a turbine engine!" onclick="startDemo()"><i class="material-icons left">3d_rotation</i>DEMO</a>
+                    </div>
+                </div>
+                <div class="col center-align" style="width: 19%">
+                    <div class="fixed-action-btn" style="position: relative">
+                        <a class="btn-floating blue">
+                            <i class="large material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="Tools">group_work</i>
+                        </a>
+                        <ul>
+                            <li>
+                                <a class="btn-floating green tooltipped" id="scribbleButton" data-position="left" data-delay="50" data-tooltip="Scribble" name="action" onclick="startScribble()">
+                                    <i class="material-icons scribbleIcon">border_color</i>
+                                </a>
+                            </li>
+                            <li>
+                                <input type="file" id="fileInput" style="display:none;"><a class="btn-floating green tooltipped" data-position="left" data-delay="50" data-tooltip="Send Image" onclick="SendPicFile()">
+                                    <i class="material-icons">insert_photo</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating green tooltipped" data-position="left" data-delay="50" id="screenShareButton" data-tooltip="Share Screen" onclick="ShareScreen()">
+                                    <i class="material-icons screenShareIcon">screen_share</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating green tooltipped" id="chatButton" data-position="left" data-delay="50" data-tooltip="Text Chat" name="action" onclick="startChat()">
+                                    <i class="material-icons">chat_bubble</i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col center-align" style="width: 15%">
+                    <div class="fixed-action-btn" style="position: relative">
+                        <a class="btn-floating orange darken-1">
+                            <i class="large material-icons tooltipped" data-position="left" data-delay="50" data-tooltip="Record Session">album</i>
+                        </a>
+                        <ul>
+                            <li>
+                                <a class="btn-floating green tooltipped" id="capturePhoto" data-position="left" data-delay="50" data-tooltip="Capture Photo">
+                                    <i class="material-icons">photo_camera</i>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="btn-floating yellow darken-1 tooltipped" id="recordButton" data-position="left" data-delay="50" data-tooltip="Start Video Record" onclick="startRecording()">
+                                    <i class="material-icons recordIcon">play_circle_filled</i>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

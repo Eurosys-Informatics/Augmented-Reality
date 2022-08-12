@@ -1,0 +1,22 @@
+{
+    "family": "Perinno",
+    "containerDefinitions": [
+        {
+            "name": "Perinno",
+            "image": "405483299304.dkr.ecr.us-west-2.amazonaws.com/perinno",
+            "cpu": 10,
+            "memory": 500,
+            "portMappings": [
+                {
+                    "containerPort": 8080,
+                    "hostPort": 8080
+                }
+            ],
+            "entryPoint": [
+                "/usr/src/app/node",
+                "server.js"
+            ],
+            "essential": true
+        }
+    ]
+}

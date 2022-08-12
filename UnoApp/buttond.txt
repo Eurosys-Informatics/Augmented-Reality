@@ -1,0 +1,5 @@
+group1: audio/video: (a) call hangup (b) mute/unmute (c) video enable/disable (d) Text Chat
+group2: Objects in AR view (a) Image-local(b) Local 3D Model-local (c) From Model Store
+group3: Model Manipulation (a) Move (b) Rotate (c) Resize (d) Explode 
+group4: Annotate (a) Scribble/Ink in MRC view (b) Highlight/Point (c) 
+group5:Misc. (a) Capture Photo (b) Capture Video 
