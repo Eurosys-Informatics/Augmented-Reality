@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "384626320972",
+    "firebase_url": "https://perinnoapp.firebaseio.com",
+    "project_id": "perinnoapp",
+    "storage_bucket": "perinnoapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384626320972:android:d687dd121419c408",
+        "android_client_info": {
+          "package_name": "com.perinno.apps.perinnoapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "384626320972-9hen7aevpe74p9ph0ov9hc2p9t3bg5nk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9cibnzihBB_MALcIup_X1n_o_nelwqg8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
